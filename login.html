@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Safar - Login & Signup</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        *{ margin:0; padding:0; box-sizing:border-box; font-family:Arial,Helvetica,sans-serif; }
+        body{ height:100vh; display:flex; justify-content:center; align-items:center; background:url('home.webp') no-repeat center center/cover; }
+        .container{ width:370px; background:rgba(0,0,0,0.85); padding:40px; border-radius:12px; color:white; box-shadow:0 0 20px rgba(0,0,0,0.6); }
+        h2{ text-align:center; margin-bottom:6px; font-size:24px; }
+        .subtitle{ text-align:center; color:#aaa; font-size:13px; margin-bottom:24px; }
+        label{ display:block; font-size:13px; color:#ccc; margin-bottom:4px; margin-top:12px; }
+        input{ width:100%; padding:11px; border:1px solid #333; background:#1a1a1a; border-radius:6px; color:white; font-size:14px; }
+        input:focus{ outline:none; border-color:orange; }
+        .role-row{ display:flex; gap:10px; margin-top:12px; }
+        .role-btn{ flex:1; padding:10px; border:2px solid #333; background:transparent; color:#aaa; border-radius:6px; cursor:pointer; font-size:14px; transition:0.2s; }
+        .role-btn.selected{ border-color:orange; background:rgba(255,165,0,0.15); color:orange; }
+        button.submit-btn{ width:100%; padding:12px; background:orange; border:none; color:white; font-weight:bold; cursor:pointer; border-radius:6px; margin-top:20px; font-size:15px; transition:0.2s; }
+        button.submit-btn:hover{ background:darkorange; }
+        button.submit-btn:disabled{ background:#555; cursor:not-allowed; }
+        .toggle{ text-align:center; margin-top:16px; cursor:pointer; color:orange; font-size:14px; }
+        .toggle:hover{ text-decoration:underline; }
+        .hidden{ display:none; }
+        .error-msg{ color:#ff6b6b; font-size:13px; margin-top:10px; text-align:center; min-height:18px; }
+        .success-msg{ color:#4ade80; font-size:13px; margin-top:10px; text-align:center; min-height:18px; }
+        .spinner{ display:inline-block; width:14px; height:14px; border:2px solid rgba(255,255,255,0.3); border-top-color:white; border-radius:50%; animation:spin 0.6s linear infinite; margin-right:6px; vertical-align:middle; }
+        @keyframes spin{ to{ transform:rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- ── LOGIN FORM ── -->
+    <div id="loginForm">
+        <h2>Welcome Back</h2>
+        <p class="subtitle">Login to continue your journey</p>
+
+        <div class="role-row">
+            <button class="role-btn selected" id="loginRoleUser"  onclick="setLoginRole('user')">🧳 Traveller</button>
+            <button class="role-btn"           id="loginRoleOwner" onclick="setLoginRole('owner')">🏨 Owner</button>
+        </div>
+
+        <label>Email</label>
+        <input type="email" id="loginEmail" placeholder="Enter your email">
+
+        <label>Password</label>
+        <input type="password" id="loginPassword" placeholder="Enter your password">
+
+        <div class="error-msg"   id="loginError"></div>
+        <div class="success-msg" id="loginSuccess"></div>
+
+        <button class="submit-btn" id="loginBtn" onclick="login()">Login</button>
+        <div class="toggle" onclick="showSignup()">Don't have an account? Sign Up</div>
+    </div>
+
+    <!-- ── SIGNUP FORM ── -->
+    <div id="signupForm" class="hidden">
+        <h2>Create Account</h2>
+        <p class="subtitle">Join Safar and start exploring</p>
+
+        <div class="role-row">
+            <button class="role-btn selected" id="signupRoleUser"  onclick="setSignupRole('user')">🧳 Traveller</button>
+            <button class="role-btn"           id="signupRoleOwner" onclick="setSignupRole('owner')">🏨 Owner</button>
+        </div>
+
+        <label>Full Name</label>
+        <input type="text" id="signupName" placeholder="Your full name">
+
+        <label>Email</label>
+        <input type="email" id="signupEmail" placeholder="Your email">
+
+        <label>Password</label>
+        <input type="password" id="signupPassword" placeholder="Choose a password">
+
+        <div class="error-msg"   id="signupError"></div>
+        <div class="success-msg" id="signupSuccess"></div>
+
+        <button class="submit-btn" id="signupBtn" onclick="signup()">Create Account</button>
+        <div class="toggle" onclick="showLogin()">Already have an account? Login</div>
+    </div>
+
+</div>
+
+<script>
+    const API = 'http://localhost:3000/api';
+
+    let loginRole  = 'user';
+    let signupRole = 'user';
+
+    // ── role toggle helpers ──────────────────────────────────
+    function setLoginRole(role) {
+        loginRole = role;
+        document.getElementById('loginRoleUser').classList.toggle('selected',  role === 'user');
+        document.getElementById('loginRoleOwner').classList.toggle('selected', role === 'owner');
+    }
+
+    function setSignupRole(role) {
+        signupRole = role;
+        document.getElementById('signupRoleUser').classList.toggle('selected',  role === 'user');
+        document.getElementById('signupRoleOwner').classList.toggle('selected', role === 'owner');
+    }
+
+    // ── form switchers ───────────────────────────────────────
+    function showSignup() {
+        document.getElementById('loginForm').classList.add('hidden');
+        document.getElementById('signupForm').classList.remove('hidden');
+    }
+
+    function showLogin() {
+        document.getElementById('signupForm').classList.add('hidden');
+        document.getElementById('loginForm').classList.remove('hidden');
+    }
+
+    // ── SIGNUP ───────────────────────────────────────────────
+    async function signup() {
+        const name     = document.getElementById('signupName').value.trim();
+        const email    = document.getElementById('signupEmail').value.trim();
+        const password = document.getElementById('signupPassword').value.trim();
+        const errEl    = document.getElementById('signupError');
+        const okEl     = document.getElementById('signupSuccess');
+        const btn      = document.getElementById('signupBtn');
+
+        errEl.innerText = '';
+        okEl.innerText  = '';
+
+        if (!name || !email || !password) {
+            errEl.innerText = 'Please fill all fields.';
+            return;
+        }
+
+        btn.disabled   = true;
+        btn.innerHTML  = '<span class="spinner"></span>Creating account…';
+
+        try {
+            const res  = await fetch(`${API}/auth/register`, {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify({ name, email, password, role: signupRole })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                okEl.innerText = '✅ Account created! Redirecting to login…';
+                setTimeout(() => {
+                    showLogin();
+                    okEl.innerText = '';
+                }, 1800);
+            } else {
+                errEl.innerText = data.message || 'Signup failed.';
+            }
+        } catch (e) {
+            errEl.innerText = '❌ Cannot reach server. Is the backend running?';
+        } finally {
+            btn.disabled  = false;
+            btn.innerHTML = 'Create Account';
+        }
+    }
+
+    // ── LOGIN ────────────────────────────────────────────────
+    async function login() {
+        const email    = document.getElementById('loginEmail').value.trim();
+        const password = document.getElementById('loginPassword').value.trim();
+        const errEl    = document.getElementById('loginError');
+        const okEl     = document.getElementById('loginSuccess');
+        const btn      = document.getElementById('loginBtn');
+
+        errEl.innerText = '';
+        okEl.innerText  = '';
+
+        if (!email || !password) {
+            errEl.innerText = 'Please enter email and password.';
+            return;
+        }
+
+        btn.disabled  = true;
+        btn.innerHTML = '<span class="spinner"></span>Logging in…';
+
+        try {
+            const res  = await fetch(`${API}/auth/login`, {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify({ email, password })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                // Validate role matches selected tab
+                if (data.user.role !== loginRole) {
+                    errEl.innerText = `This account is registered as "${data.user.role}". Please select the correct role.`;
+                    btn.disabled  = false;
+                    btn.innerHTML = 'Login';
+                    return;
+                }
+
+                // Store user in sessionStorage (no more localStorage for auth)
+                sessionStorage.setItem('loggedInUser', JSON.stringify(data.user));
+
+                okEl.innerText = '✅ Login successful! Redirecting…';
+
+                setTimeout(() => {
+                    if (data.user.role === 'owner') {
+                        window.location.href = 'owner.html';
+                    } else {
+                        window.location.href = 'explore.html';
+                    }
+                }, 800);
+            } else {
+                errEl.innerText = data.message || 'Login failed.';
+            }
+        } catch (e) {
+            errEl.innerText = '❌ Cannot reach server. Is the backend running?';
+        } finally {
+            btn.disabled  = false;
+            btn.innerHTML = 'Login';
+        }
+    }
+
+    // ── Allow Enter key ──────────────────────────────────────
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            const signupVisible = !document.getElementById('signupForm').classList.contains('hidden');
+            signupVisible ? signup() : login();
+        }
+    });
+</script>
+</body>
+</html>
