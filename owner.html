@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Owner Dashboard - Safar</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+*{ margin:0; padding:0; box-sizing:border-box; font-family:Arial,sans-serif; }
+body{ background:#f4f4f4; }
+nav{ background:#111; color:white; padding:15px 50px; display:flex; justify-content:space-between; align-items:center; }
+nav h2{ color:orange; }
+nav button{ padding:8px 15px; background:orange; border:none; color:white; cursor:pointer; border-radius:5px; margin-left:8px; }
+.container{ padding:40px 60px; }
+.section{ margin-bottom:40px; }
+.section h3{ font-size:20px; margin-bottom:16px; border-left:4px solid orange; padding-left:10px; }
+.card{ background:white; padding:20px; margin-bottom:15px; border-radius:10px; box-shadow:0 5px 15px rgba(0,0,0,0.08); }
+.card h4{ margin-bottom:8px; font-size:16px; }
+.card p{ margin:4px 0; color:#555; font-size:14px; }
+.status{ display:inline-block; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:bold; }
+.status.Pending{ background:#fef3c7; color:#b45309; }
+.status.Accepted{ background:#d1fae5; color:#065f46; }
+.status.Rejected{ background:#fee2e2; color:#991b1b; }
+.status.PaidConfirmed{ background:#dbeafe; color:#1e40af; }
+.action-btns{ margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; }
+.btn-accept{ padding:7px 16px; background:#10b981; border:none; color:white; border-radius:5px; cursor:pointer; font-size:14px; }
+.btn-reject{ padding:7px 16px; background:#ef4444; border:none; color:white; border-radius:5px; cursor:pointer; font-size:14px; }
+/* Add Trip Form */
+.add-trip-form{ background:white; padding:24px; border-radius:10px; box-shadow:0 5px 15px rgba(0,0,0,0.08); }
+.form-row{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.form-group{ margin-bottom:14px; }
+.form-group label{ display:block; font-size:13px; color:#555; margin-bottom:5px; font-weight:600; }
+.form-group input{ width:100%; padding:10px; border:1px solid #ddd; border-radius:6px; font-size:14px; }
+.form-group input:focus{ outline:none; border-color:orange; }
+.btn-add{ padding:12px 24px; background:orange; border:none; color:white; border-radius:6px; cursor:pointer; font-size:15px; font-weight:bold; }
+.btn-add:hover{ background:darkorange; }
+.btn-add:disabled{ background:#aaa; cursor:not-allowed; }
+.form-msg{ margin-top:10px; font-size:14px; font-weight:bold; }
+.form-msg.ok{ color:green; }
+.form-msg.err{ color:red; }
+.trip-card{ background:white; padding:16px; margin-bottom:12px; border-radius:10px; box-shadow:0 3px 10px rgba(0,0,0,0.07); display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px; }
+.trip-card h4{ margin-bottom:4px; }
+.trip-card p{ font-size:13px; color:#666; }
+.btn-del{ padding:6px 14px; background:#ef4444; border:none; color:white; border-radius:5px; cursor:pointer; font-size:13px; }
+.empty{ color:#888; font-style:italic; padding:10px 0; }
+.spinner{ display:inline-block; width:13px; height:13px; border:2px solid rgba(255,255,255,0.4); border-top-color:white; border-radius:50%; animation:spin 0.6s linear infinite; margin-right:6px; vertical-align:middle; }
+@keyframes spin{ to{ transform:rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<nav>
+    <h2>Owner Dashboard</h2>
+    <div>
+        <button onclick="window.location.href='explore.html'">Browse</button>
+        <button onclick="logout()">Logout</button>
+    </div>
+</nav>
+
+<div class="container">
+
+    <!-- ── ADD TRIP ──────────────────────────────────── -->
+    <div class="section">
+        <h3>Add a New Trip / Package</h3>
+        <div class="add-trip-form">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Trip Title</label>
+                    <input type="text" id="tripTitle" placeholder="e.g. Chopta Weekend Escape">
+                </div>
+                <div class="form-group">
+                    <label>Location / City</label>
+                    <input type="text" id="tripLocation" placeholder="e.g. Chopta">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Price (₹)</label>
+                    <input type="number" id="tripPrice" placeholder="e.g. 6999" min="0">
+                </div>
+                <div class="form-group">
+                    <label>Image filename (from frontend/)</label>
+                    <input type="text" id="tripImage" placeholder="e.g. chopta.webp">
+                </div>
+            </div>
+            <div class="form-msg" id="tripMsg"></div>
+            <button class="btn-add" id="addTripBtn" onclick="addTrip()">+ Add Trip</button>
+        </div>
+    </div>
+
+    <!-- ── MY TRIPS ───────────────────────────────────── -->
+    <div class="section">
+        <h3>Your Listed Trips</h3>
+        <div id="myTripsContainer"><p class="empty">Loading your trips…</p></div>
+    </div>
+
+    <!-- ── BARGAIN / HOTEL REQUESTS ──────────────────── -->
+    <div class="section">
+        <h3>Hotel Booking Requests</h3>
+        <div id="requestsContainer"><p class="empty">Loading requests…</p></div>
+    </div>
+
+</div>
+
+<script>
+    const API = 'http://localhost:3000/api';
+
+    const currentUser = JSON.parse(sessionStorage.getItem('loggedInUser'));
+    if (!currentUser || currentUser.role !== 'owner') { window.location.href = 'login.html'; }
+
+    // ── Load my trips ─────────────────────────────────
+    async function loadMyTrips() {
+        const container = document.getElementById('myTripsContainer');
+        try {
+            const res  = await fetch(`${API}/trips/my?organizer_id=${currentUser.id}`);
+            const data = await res.json();
+
+            if (!data.success || data.trips.length === 0) {
+                container.innerHTML = '<p class="empty">No trips listed yet. Add one above!</p>';
+                return;
+            }
+
+            container.innerHTML = '';
+            data.trips.forEach(t => {
+                container.innerHTML += `
+                    <div class="trip-card">
+                        <div>
+                            <h4>${t.title}</h4>
+                            <p>📍 ${t.location} &nbsp;|&nbsp; ₹${Number(t.price).toLocaleString()}</p>
+                        </div>
+                        <button class="btn-del" onclick="deleteTrip(${t.id})">Delete</button>
+                    </div>`;
+            });
+        } catch (e) {
+            container.innerHTML = '<p class="empty" style="color:red">❌ Cannot reach server.</p>';
+        }
+    }
+
+    // ── Add trip ──────────────────────────────────────
+    async function addTrip() {
+        const title    = document.getElementById('tripTitle').value.trim();
+        const location = document.getElementById('tripLocation').value.trim();
+        const price    = document.getElementById('tripPrice').value;
+        const image    = document.getElementById('tripImage').value.trim();
+        const msgEl    = document.getElementById('tripMsg');
+        const btn      = document.getElementById('addTripBtn');
+
+        msgEl.className = 'form-msg';
+        msgEl.innerText = '';
+
+        if (!title || !location || !price) {
+            msgEl.className   = 'form-msg err';
+            msgEl.innerText   = 'Please fill Title, Location and Price.';
+            return;
+        }
+
+        btn.disabled  = true;
+        btn.innerHTML = '<span class="spinner"></span>Adding…';
+
+        try {
+            const res  = await fetch(`${API}/trips/add`, {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify({ title, location, price, image, organizer_id: currentUser.id })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                msgEl.className = 'form-msg ok';
+                msgEl.innerText = '✅ Trip added successfully!';
+                document.getElementById('tripTitle').value    = '';
+                document.getElementById('tripLocation').value = '';
+                document.getElementById('tripPrice').value    = '';
+                document.getElementById('tripImage').value    = '';
+                loadMyTrips();
+            } else {
+                msgEl.className = 'form-msg err';
+                msgEl.innerText = data.message || 'Failed to add trip.';
+            }
+        } catch (e) {
+            msgEl.className = 'form-msg err';
+            msgEl.innerText = '❌ Cannot reach server.';
+        } finally {
+            btn.disabled  = false;
+            btn.innerHTML = '+ Add Trip';
+        }
+    }
+
+    // ── Delete trip ───────────────────────────────────
+    async function deleteTrip(id) {
+        if (!confirm('Delete this trip?')) return;
+        try {
+            const res  = await fetch(`${API}/trips/${id}`, {
+                method:  'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify({ organizer_id: currentUser.id })
+            });
+            const data = await res.json();
+            if (data.success) loadMyTrips();
+            else alert(data.message || 'Could not delete.');
+        } catch (e) {
+            alert('❌ Cannot reach server.');
+        }
+    }
+
+    // ── Load booking requests ─────────────────────────
+    async function loadRequests() {
+        const container = document.getElementById('requestsContainer');
+        try {
+            const res  = await fetch(`${API}/bookings/owner/${encodeURIComponent(currentUser.email)}`);
+            const data = await res.json();
+
+            if (!data.success || data.bookings.length === 0) {
+                container.innerHTML = '<p class="empty">No booking requests yet.</p>';
+                return;
+            }
+
+            container.innerHTML = '';
+            data.bookings.forEach(req => {
+                const statusKey = (req.status || '').replace(/\s+/g, '');
+                const actionBtns = req.status === 'Pending' ? `
+                    <div class="action-btns">
+                        <button class="btn-accept" onclick="updateStatus(${req.id},'Accepted')">✅ Accept</button>
+                        <button class="btn-reject" onclick="updateStatus(${req.id},'Rejected')">❌ Reject</button>
+                    </div>` : '';
+
+                container.innerHTML += `
+                    <div class="card">
+                        <h4>${req.property_name}</h4>
+                        <p>👤 Guest: ${req.user_name || 'User #' + req.user_id}</p>
+                        <p>📅 Check-in: ${req.checkin} &nbsp;→&nbsp; Check-out: ${req.checkout}</p>
+                        <p>👥 Guests: ${req.guests}</p>
+                        <p>💰 Original: ₹${Number(req.original_price).toLocaleString()} &nbsp;|&nbsp; Offered: ₹${Number(req.offered_price).toLocaleString()}</p>
+                        <p>📍 City: ${req.city || '—'}</p>
+                        <p>Status: <span class="status ${statusKey}">${req.status}</span></p>
+                        ${actionBtns}
+                    </div>`;
+            });
+        } catch (e) {
+            container.innerHTML = '<p class="empty" style="color:red">❌ Cannot reach server.</p>';
+        }
+    }
+
+    // ── Accept / Reject ───────────────────────────────
+    async function updateStatus(id, status) {
+        try {
+            const res  = await fetch(`${API}/bookings/hotel/${id}/status`, {
+                method:  'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify({ status })
+            });
+            const data = await res.json();
+            if (data.success) loadRequests();
+            else alert(data.message || 'Update failed.');
+        } catch (e) {
+            alert('❌ Cannot reach server.');
+        }
+    }
+
+    function logout() { sessionStorage.clear(); window.location.href = 'login.html'; }
+
+    // Init
+    loadMyTrips();
+    loadRequests();
+</script>
+</body>
+</html>
