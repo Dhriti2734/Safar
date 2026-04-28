@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Tourist Activities - Safar</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--orange:#F97316;--dark-orange:#C2410C;--black:#0D0D0D;--card:#161616;--white:#FAFAFA;--gray:#6B7280;--success:#10B981;}
+body{font-family:'DM Sans',sans-serif;background:var(--black);color:var(--white);min-height:100vh;}
+nav{display:flex;justify-content:space-between;align-items:center;padding:18px 60px;background:rgba(0,0,0,0.95);border-bottom:1px solid rgba(255,255,255,0.07);position:sticky;top:0;z-index:100;}
+nav h2{font-family:'Playfair Display',serif;color:var(--orange);font-size:22px;}
+.nav-btns{display:flex;gap:10px;}
+.nav-btn{padding:7px 16px;background:transparent;border:1px solid rgba(255,255,255,0.18);color:var(--white);cursor:pointer;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:13px;transition:all 0.2s;}
+.nav-btn:hover{background:var(--orange);border-color:var(--orange);}
+.page-header{padding:50px 60px 30px;border-bottom:1px solid rgba(255,255,255,0.06);}
+.breadcrumb{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--gray);margin-bottom:16px;}
+.breadcrumb span{color:var(--orange);cursor:pointer;}
+.breadcrumb span:hover{text-decoration:underline;}
+.page-header h1{font-family:'Playfair Display',serif;font-size:42px;font-weight:900;margin-bottom:8px;}
+.page-header h1 span{color:var(--orange);}
+.page-header p{color:var(--gray);font-size:15px;}
+.filter-bar{display:flex;gap:12px;padding:20px 60px;flex-wrap:wrap;border-bottom:1px solid rgba(255,255,255,0.06);align-items:center;}
+.filter-btn{padding:8px 18px;border:1px solid rgba(255,255,255,0.12);background:transparent;color:rgba(255,255,255,0.7);border-radius:50px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;transition:all 0.2s;}
+.filter-btn.active,.filter-btn:hover{background:var(--orange);border-color:var(--orange);color:white;}
+.filter-select{padding:8px 14px;background:#1a1a1a;border:1px solid rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;margin-left:auto;}
+.activities-container{padding:30px 60px 60px;}
+.activities-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:24px;}
+.activity-card{background:var(--card);border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,0.07);transition:all 0.35s cubic-bezier(0.22,0.61,0.36,1);animation:fadeUp 0.5s ease both;}
+.activity-card:hover{transform:translateY(-8px);border-color:rgba(249,115,22,0.4);box-shadow:0 16px 50px rgba(249,115,22,0.12);}
+.card-img-wrap{position:relative;height:190px;overflow:hidden;}
+.card-img-wrap img{width:100%;height:100%;object-fit:cover;transition:transform 0.4s ease;}
+.activity-card:hover .card-img-wrap img{transform:scale(1.07);}
+.card-badge{position:absolute;top:12px;left:12px;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);color:white;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;padding:4px 10px;border-radius:50px;border:1px solid rgba(255,255,255,0.15);}
+.card-badge.adventure{background:rgba(239,68,68,0.85);border-color:rgba(239,68,68,0.4);}
+.card-badge.spiritual{background:rgba(139,92,246,0.85);border-color:rgba(139,92,246,0.4);}
+.card-badge.nature{background:rgba(16,185,129,0.85);border-color:rgba(16,185,129,0.4);}
+.card-badge.cultural{background:rgba(249,115,22,0.85);border-color:rgba(249,115,22,0.4);}
+.rating-badge{position:absolute;top:12px;right:12px;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);color:#FBBF24;font-size:12px;font-weight:600;padding:4px 10px;border-radius:50px;border:1px solid rgba(251,191,36,0.3);}
+.card-body{padding:20px;}
+.card-body h3{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;margin-bottom:8px;}
+.card-meta{display:flex;gap:14px;margin-bottom:12px;font-size:13px;color:var(--gray);}
+.card-meta span{display:flex;align-items:center;gap:4px;}
+.card-desc{font-size:13px;color:rgba(255,255,255,0.55);line-height:1.65;margin-bottom:16px;}
+.card-footer{display:flex;align-items:center;justify-content:space-between;}
+.price-tag .amount{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--orange);}
+.price-tag .per{font-size:11px;color:var(--gray);}
+.book-btn{padding:10px 22px;background:var(--orange);border:none;color:white;border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;transition:all 0.2s;}
+.book-btn:hover{background:var(--dark-orange);transform:scale(1.03);}
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);z-index:1000;align-items:center;justify-content:center;padding:20px;}
+.modal-overlay.open{display:flex;}
+.modal{background:#111;border:1px solid rgba(255,255,255,0.1);border-radius:20px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;animation:modalIn 0.3s ease both;}
+@keyframes modalIn{from{opacity:0;transform:scale(0.94) translateY(20px);}to{opacity:1;transform:scale(1) translateY(0);}}
+.modal-header{padding:24px 28px 0;display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;}
+.modal-header h3{font-family:'Playfair Display',serif;font-size:22px;}
+.modal-close{background:rgba(255,255,255,0.08);border:none;color:white;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;transition:0.2s;flex-shrink:0;}
+.modal-close:hover{background:rgba(239,68,68,0.3);}
+.modal-body{padding:0 28px 28px;}
+.modal-activity-preview{display:flex;gap:14px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:16px;margin-bottom:24px;align-items:center;}
+.modal-activity-preview img{width:80px;height:64px;object-fit:cover;border-radius:8px;}
+.modal-activity-preview .info h4{font-size:16px;margin-bottom:4px;}
+.modal-activity-preview .info p{font-size:13px;color:var(--gray);}
+.modal-activity-preview .price{margin-left:auto;text-align:right;flex-shrink:0;}
+.modal-activity-preview .price .amount{font-family:'Playfair Display',serif;font-size:20px;color:var(--orange);font-weight:700;display:block;}
+.modal-activity-preview .price small{font-size:11px;color:var(--gray);}
+.form-group{margin-bottom:16px;}
+.form-group label{display:block;font-size:13px;font-weight:600;color:rgba(255,255,255,0.7);margin-bottom:7px;letter-spacing:0.3px;}
+.form-input{width:100%;padding:11px 14px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:white;font-family:'DM Sans',sans-serif;font-size:14px;transition:border-color 0.2s;}
+.form-input:focus{outline:none;border-color:var(--orange);background:rgba(249,115,22,0.05);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.total-box{background:rgba(249,115,22,0.08);border:1px solid rgba(249,115,22,0.2);border-radius:10px;padding:16px;margin:20px 0;}
+.total-row{display:flex;justify-content:space-between;font-size:14px;margin-bottom:8px;color:rgba(255,255,255,0.65);}
+.total-row:last-child{margin-bottom:0;border-top:1px solid rgba(255,255,255,0.1);padding-top:10px;color:white;font-weight:700;font-size:16px;}
+.total-row:last-child span:last-child{color:var(--orange);}
+.submit-btn{width:100%;padding:14px;background:var(--orange);border:none;color:white;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:16px;font-weight:600;cursor:pointer;transition:all 0.2s;}
+.submit-btn:hover{background:var(--dark-orange);}
+.submit-btn:disabled{background:#555;cursor:not-allowed;}
+.success-screen{display:none;text-align:center;padding:40px 28px;}
+.success-screen.show{display:block;}
+.success-icon{width:72px;height:72px;background:rgba(16,185,129,0.15);border:2px solid var(--success);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 20px;animation:popIn 0.4s cubic-bezier(0.68,-0.55,0.27,1.55) both;}
+@keyframes popIn{from{transform:scale(0);}to{transform:scale(1);}}
+.success-screen h3{font-family:'Playfair Display',serif;font-size:26px;margin-bottom:10px;}
+.success-screen p{color:var(--gray);font-size:14px;line-height:1.6;margin-bottom:24px;}
+.booking-ref{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:14px;font-size:13px;color:rgba(255,255,255,0.55);margin-bottom:24px;}
+.booking-ref strong{color:var(--orange);font-size:15px;display:block;margin-bottom:4px;}
+.success-close-btn{padding:12px 30px;background:var(--orange);border:none;color:white;border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;}
+.empty-state{text-align:center;padding:80px 20px;color:var(--gray);}
+.empty-state .icon{font-size:48px;margin-bottom:16px;}
+.api-error{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#fca5a5;padding:12px 16px;border-radius:8px;font-size:13px;margin-bottom:14px;display:none;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+@media(max-width:768px){nav{padding:14px 20px;}.page-header,.filter-bar,.activities-container{padding-left:20px;padding-right:20px;}.form-row{grid-template-columns:1fr;}.modal-activity-preview{flex-wrap:wrap;}.modal-activity-preview .price{margin-left:0;}}
+</style>
+</head>
+<body>
+
+<nav>
+    <h2>Safar Activities</h2>
+    <div class="nav-btns">
+        <button class="nav-btn" onclick="goBack()">← Back</button>
+        <button class="nav-btn" onclick="goDashboard()">Dashboard</button>
+        <button class="nav-btn" onclick="logout()">Logout</button>
+    </div>
+</nav>
+
+<div class="page-header">
+    <div class="breadcrumb">
+        <span onclick="window.location.href='explore.html'">Explore</span> ›
+        <span onclick="goBack()"><span id="breadCity">City</span></span> ›
+        Tourist Activities
+    </div>
+    <h1>Activities in <span id="pageCity">City</span></h1>
+    <p>Book thrilling experiences, guided tours & local adventures</p>
+</div>
+
+<div class="filter-bar">
+    <button class="filter-btn active" onclick="filterActivities('all',this)">All</button>
+    <button class="filter-btn" onclick="filterActivities('adventure',this)">⚡ Adventure</button>
+    <button class="filter-btn" onclick="filterActivities('spiritual',this)">🕉️ Spiritual</button>
+    <button class="filter-btn" onclick="filterActivities('nature',this)">🌿 Nature</button>
+    <button class="filter-btn" onclick="filterActivities('cultural',this)">🎭 Cultural</button>
+    <select class="filter-select" onchange="sortActivities(this.value)">
+        <option value="default">Sort by</option>
+        <option value="low">Price: Low → High</option>
+        <option value="high">Price: High → Low</option>
+        <option value="rating">Top Rated</option>
+    </select>
+</div>
+
+<div class="activities-container">
+    <div class="activities-grid" id="activitiesGrid"></div>
+</div>
+
+<!-- BOOKING MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+    <div class="modal" id="modal">
+        <div id="bookingView">
+            <div class="modal-header">
+                <h3>Book Activity</h3>
+                <button class="modal-close" onclick="closeModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-activity-preview">
+                    <img id="mImg" src="" alt="">
+                    <div class="info"><h4 id="mName"></h4><p id="mMeta"></p></div>
+                    <div class="price"><span class="amount" id="mPrice"></span><small>/person</small></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Activity Date</label>
+                        <input type="date" class="form-input" id="actDate">
+                    </div>
+                    <div class="form-group">
+                        <label>Number of People</label>
+                        <input type="number" class="form-input" id="actPeople" min="1" max="20" value="1" oninput="updateTotal()">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" class="form-input" id="actName" placeholder="As on ID">
+                </div>
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="tel" class="form-input" id="actPhone" placeholder="+91 XXXXX XXXXX">
+                </div>
+                <div class="form-group">
+                    <label>Special Requirements (Optional)</label>
+                    <input type="text" class="form-input" id="actSpecial" placeholder="e.g. Vegetarian meals, wheelchair access…">
+                </div>
+                <div class="total-box">
+                    <div class="total-row"><span>Price per person</span><span id="totalPerPerson">₹0</span></div>
+                    <div class="total-row"><span>No. of people</span><span id="totalPeople">1</span></div>
+                    <div class="total-row"><span>Total Amount</span><span id="totalAmount">₹0</span></div>
+                </div>
+                <div class="api-error" id="actApiErr"></div>
+                <button class="submit-btn" id="confirmBtn" onclick="confirmBooking()">Confirm & Book Activity</button>
+            </div>
+        </div>
+        <div class="success-screen" id="successView">
+            <div class="success-icon">✓</div>
+            <h3>Booking Confirmed!</h3>
+            <p>Your activity has been booked successfully. You'll receive a confirmation shortly.</p>
+            <div class="booking-ref"><strong id="bookingRefNum">REF-XXXXXXXX</strong>Check your booking status from the Dashboard</div>
+            <button class="success-close-btn" onclick="closeModal()">Done</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const API = 'http://localhost:3000/api';
+
+    const currentUser = JSON.parse(sessionStorage.getItem('loggedInUser'));
+    if (!currentUser || currentUser.role !== 'user') { window.location.href = 'login.html'; }
+
+    const selectedCity = sessionStorage.getItem('selectedCity') || 'City';
+    document.getElementById('pageCity').innerText  = selectedCity;
+    document.getElementById('breadCity').innerText = selectedCity;
+
+    const activitiesData = {
+        'Rishikesh':[
+            {name:'White Water Rafting',category:'adventure',duration:'3 hrs',difficulty:'Moderate',price:1500,rating:4.9,desc:'Navigate Grade 3-4 rapids on the Ganges with expert guides. Perfect for adrenaline seekers!',image:'rishikesh.jpg'},
+            {name:'Bungee Jumping',category:'adventure',duration:'2 hrs',difficulty:'Extreme',price:3500,rating:4.8,desc:"India's highest bungee jump at 83m above the Ganges. Not for the faint-hearted!",image:'rishikesh.jpg'},
+            {name:'Ganga Aarti Ceremony',category:'spiritual',duration:'2 hrs',difficulty:'Easy',price:500,rating:5.0,desc:'Witness the mesmerising evening Ganga Aarti at Triveni Ghat — a deeply spiritual experience.',image:'devprayag.jpeg'},
+            {name:'Yoga & Meditation Retreat',category:'spiritual',duration:'Full Day',difficulty:'Easy',price:1200,rating:4.9,desc:'Half-day retreat at a riverside ashram including pranayama, meditation & healthy meals.',image:'devprayag.jpeg'},
+            {name:'Neelkanth Temple Trek',category:'nature',duration:'5 hrs',difficulty:'Moderate',price:800,rating:4.7,desc:'Guided trek through dense forest to the ancient Neelkanth Mahadev temple.',image:'chopta.webp'},
+            {name:'Beatles Ashram Walk',category:'cultural',duration:'2 hrs',difficulty:'Easy',price:600,rating:4.6,desc:'Explore the iconic Maharishi Mahesh Yogi Ashram where The Beatles once stayed.',image:'harshil.jpg'},
+            {name:'Camping by Ganges',category:'nature',duration:'Overnight',difficulty:'Easy',price:2200,rating:4.8,desc:'Riverside camping with bonfire, dinner, and stargazing. Wake up to the sound of flowing Ganges.',image:'chopta.webp'},
+            {name:'Zip Lining',category:'adventure',duration:'1 hr',difficulty:'Easy',price:900,rating:4.7,desc:'Soar over the treetops and Ganges on high-speed zip lines with panoramic Himalayan views.',image:'rishikesh.jpg'}
+        ],
+        'Dehradun':[
+            {name:"Robber's Cave Exploration",category:'nature',duration:'3 hrs',difficulty:'Easy',price:400,rating:4.5,desc:'Walk through the fascinating cave passage with a stream running through it at Guchhupani.',image:'dehradun.jpg'},
+            {name:'Sahastradhara Hot Springs',category:'nature',duration:'3 hrs',difficulty:'Easy',price:300,rating:4.4,desc:'Relax in natural sulphur springs believed to have healing properties.',image:'dehradun.jpg'},
+            {name:'Forest Research Institute Tour',category:'cultural',duration:'2 hrs',difficulty:'Easy',price:200,rating:4.6,desc:"Guided tour of one of India's most beautiful colonial-era buildings and its forests.",image:'harshil.jpg'},
+            {name:'Mindrolling Monastery Visit',category:'spiritual',duration:'2 hrs',difficulty:'Easy',price:250,rating:4.8,desc:"Explore one of Asia's largest Buddhist monasteries with stunning architecture and art.",image:'devprayag.jpeg'},
+            {name:'Tiger Falls Trek',category:'adventure',duration:'5 hrs',difficulty:'Moderate',price:700,rating:4.7,desc:"Trek to the 50m high Tiger Falls through pristine forest — one of Uttarakhand's finest waterfalls.",image:'chopta.webp'},
+            {name:'Paltan Bazaar Food Walk',category:'cultural',duration:'2 hrs',difficulty:'Easy',price:350,rating:4.5,desc:"Guided street food tour through Dehradun's iconic Paltan Bazaar — taste local delicacies.",image:'harshil.jpg'}
+        ],
+        'Mussoorie':[
+            {name:'Kempty Falls Visit',category:'nature',duration:'3 hrs',difficulty:'Easy',price:400,rating:4.4,desc:'Visit the iconic stepped waterfall and take a dip in the crystal clear natural pools.',image:'mussorie.jpg'},
+            {name:'Cable Car Ride',category:'adventure',duration:'1.5 hrs',difficulty:'Easy',price:600,rating:4.6,desc:"Gondola ride offering breathtaking bird's eye views of the Doon Valley and Himalayas.",image:'mussorie.jpg'},
+            {name:'Lal Tibba Sunrise Trek',category:'nature',duration:'4 hrs',difficulty:'Moderate',price:800,rating:4.8,desc:'Early morning guided trek to the highest point of Mussoorie for spectacular sunrise views.',image:'chopta.webp'},
+            {name:'Mall Road Heritage Walk',category:'cultural',duration:'2 hrs',difficulty:'Easy',price:350,rating:4.5,desc:"Guided walk covering Mussoorie's colonial heritage buildings, history and local culture.",image:'harshil.jpg'},
+            {name:"Cloud's End Nature Trail",category:'nature',duration:'3 hrs',difficulty:'Easy',price:500,rating:4.7,desc:'Peaceful walk through dense oak and rhododendron forests to the westernmost point of Mussoorie.',image:'chopta.webp'}
+        ],
+        'Chopta':[
+            {name:'Tungnath Temple Trek',category:'spiritual',duration:'Full Day',difficulty:'Moderate',price:1200,rating:4.9,desc:'Trek to the world\'s highest Shiva temple at 3680m through stunning alpine meadows.',image:'chopta.webp'},
+            {name:'Chandrashila Summit',category:'adventure',duration:'Full Day',difficulty:'Challenging',price:1800,rating:4.9,desc:'Conquer the 4000m Chandrashila summit for panoramic 360° Himalayan views.',image:'chopta.webp'},
+            {name:'Deoria Tal Lake Trek',category:'nature',duration:'Full Day',difficulty:'Moderate',price:1000,rating:4.8,desc:'Trek to the pristine glacial lake that perfectly mirrors the Chaukhamba peaks.',image:'chopta.webp'},
+            {name:'Birdwatching Trail',category:'nature',duration:'3 hrs',difficulty:'Easy',price:600,rating:4.6,desc:"Guided birdwatching in one of Uttarakhand's richest birding zones with 200+ species.",image:'chopta.webp'},
+            {name:'Forest Camping',category:'nature',duration:'Overnight',difficulty:'Easy',price:2500,rating:4.8,desc:'Camp in the magical Bugyals (alpine meadows) under a star-lit sky with Himalayan views.',image:'chopta.webp'}
+        ],
+        'Devprayag':[
+            {name:'Sangam Dip & Puja',category:'spiritual',duration:'2 hrs',difficulty:'Easy',price:500,rating:5.0,desc:'Sacred dip and traditional puja at the confluence of Alaknanda and Bhagirathi rivers.',image:'devprayag.jpeg'},
+            {name:'Raghunath Temple Tour',category:'cultural',duration:'2 hrs',difficulty:'Easy',price:300,rating:4.7,desc:"Guided tour of the ancient Raghunath temple and the town's spiritual heritage.",image:'devprayag.jpeg'},
+            {name:'Riverbank Meditation',category:'spiritual',duration:'1.5 hrs',difficulty:'Easy',price:400,rating:4.8,desc:'Guided meditation session on the banks of the sacred Devprayag sangam.',image:'devprayag.jpeg'},
+            {name:'Village Walk',category:'cultural',duration:'3 hrs',difficulty:'Easy',price:350,rating:4.5,desc:'Walk through traditional Garhwali villages, interact with locals and experience rural life.',image:'harshil.jpg'}
+        ],
+        'Dhanaulti':[
+            {name:'Eco Park Adventure Zone',category:'adventure',duration:'3 hrs',difficulty:'Easy',price:500,rating:4.5,desc:'Rope bridges, zip lines and adventure activities set within a peaceful deodar forest.',image:'dhanualti.webp'},
+            {name:'Surkanda Devi Trek',category:'spiritual',duration:'5 hrs',difficulty:'Moderate',price:900,rating:4.8,desc:'Trek to the ancient Surkanda Devi temple perched at 2757m with Himalayan panoramas.',image:'dhanualti.webp'},
+            {name:'Apple Orchard Walk',category:'nature',duration:'2 hrs',difficulty:'Easy',price:300,rating:4.4,desc:'Stroll through fragrant apple orchards and learn about local fruit cultivation.',image:'dhanualti.webp'},
+            {name:'Cedar Forest Camping',category:'nature',duration:'Overnight',difficulty:'Easy',price:2000,rating:4.7,desc:'Overnight tent camping in a pristine deodar cedar forest with bonfire and stargazing.',image:'dhanualti.webp'}
+        ],
+        'Dharchula':[
+            {name:'Kali River Rafting',category:'adventure',duration:'3 hrs',difficulty:'Challenging',price:2000,rating:4.8,desc:'Wild water rafting on the turbulent Kali river with Grade 4-5 rapids — expert guides only.',image:'dharchula.jpg'},
+            {name:'Narayan Ashram Visit',category:'spiritual',duration:'3 hrs',difficulty:'Moderate',price:600,rating:4.9,desc:'Visit the serene Narayan Ashram surrounded by Himalayan peaks and apple orchards.',image:'dharchula.jpg'},
+            {name:'Om Parvat Darshan',category:'spiritual',duration:'Full Day',difficulty:'Challenging',price:3500,rating:5.0,desc:"Day expedition to view the sacred Om Parvat where snow naturally forms the 'ॐ' symbol.",image:'dharchula.jpg'},
+            {name:'Border Village Trek',category:'cultural',duration:'Full Day',difficulty:'Moderate',price:1500,rating:4.7,desc:'Trek to the remote Indo-Nepal border villages experiencing unique culture and landscapes.',image:'dharchula.jpg'}
+        ],
+        'Harshil':[
+            {name:'Gangotri Valley Trek',category:'nature',duration:'Full Day',difficulty:'Moderate',price:1500,rating:4.9,desc:'Guided trek through the breathtaking Gangotri Valley with views of the Bhagirathi peaks.',image:'harshil.jpg'},
+            {name:'Apple Picking Experience',category:'cultural',duration:'2 hrs',difficulty:'Easy',price:400,rating:4.6,desc:'Pick fresh apples directly from orchards and interact with local farming families.',image:'harshil.jpg'},
+            {name:'Bhagirathi River Fishing',category:'nature',duration:'3 hrs',difficulty:'Easy',price:800,rating:4.5,desc:'Angling experience on the crystal-clear Bhagirathi river for mahseer and trout.',image:'harshil.jpg'},
+            {name:'Wildlife Safari Walk',category:'nature',duration:'4 hrs',difficulty:'Moderate',price:1200,rating:4.7,desc:'Guided nature walk spotting Himalayan wildlife including Monal pheasants and Bharal.',image:'harshil.jpg'}
+        ],
+        'Kalpa':[
+            {name:'Kinner Kailash Circumambulation',category:'spiritual',duration:'Multi-day',difficulty:'Challenging',price:5000,rating:5.0,desc:'Sacred parikrama of the divine Kinner Kailash peak (6050m) through stunning high-altitude terrain.',image:'kalpa.jpg'},
+            {name:'Suicide Point Viewpoint',category:'nature',duration:'2 hrs',difficulty:'Easy',price:300,rating:4.8,desc:'Visit the dramatic viewpoint with sheer cliffs and stunning views of the Kinnaur Valley.',image:'kalpa.jpg'},
+            {name:'Apple Wine Tasting',category:'cultural',duration:'2 hrs',difficulty:'Easy',price:500,rating:4.5,desc:'Visit local wineries for apple cider and wine tasting with traditional Kinnauri hospitality.',image:'kalpa.jpg'},
+            {name:'Ancient Temple Trail',category:'spiritual',duration:'4 hrs',difficulty:'Easy',price:700,rating:4.7,desc:'Visit Kalpa\'s ancient temples including Narayan-Nagini and Hu-Bu-Lan-Kar temple.',image:'kalpa.jpg'},
+            {name:'Village Homestay Experience',category:'cultural',duration:'Overnight',difficulty:'Easy',price:2500,rating:4.9,desc:'Stay with a local Kinnauri family, enjoy traditional food, music and mountain lifestyle.',image:'kalpa.jpg'}
+        ],
+        'Sangla':[
+            {name:'Baspa Valley Trek',category:'nature',duration:'Full Day',difficulty:'Moderate',price:1400,rating:4.8,desc:'Trek along the stunning Baspa Valley through apple orchards, ancient villages and Himalayan vistas.',image:'sangla.webp'},
+            {name:'Kamru Fort Visit',category:'cultural',duration:'3 hrs',difficulty:'Moderate',price:600,rating:4.7,desc:'Explore the 900-year-old Kamru Fort with its intricately carved wooden architecture.',image:'sangla.webp'},
+            {name:'Trout Fishing',category:'nature',duration:'3 hrs',difficulty:'Easy',price:1000,rating:4.6,desc:'Fly fishing in the pristine Baspa river famous for its rainbow and brown trout.',image:'sangla.webp'},
+            {name:'Snow Peak Photography Trek',category:'adventure',duration:'Full Day',difficulty:'Challenging',price:1800,rating:4.9,desc:'Guided photography trek to capture the Kinnaur Kailash range at golden hour.',image:'sangla.webp'}
+        ]
+    };
+
+    const defaultActivities = [
+        {name:'Guided City Tour',category:'cultural',duration:'3 hrs',difficulty:'Easy',price:600,rating:4.5,desc:'Explore the highlights of this destination with a knowledgeable local guide.',image:'dehradun.jpg'},
+        {name:'Nature Walk',category:'nature',duration:'2 hrs',difficulty:'Easy',price:400,rating:4.4,desc:'Peaceful guided walk through the natural surroundings of this beautiful destination.',image:'chopta.webp'},
+        {name:'Local Food Experience',category:'cultural',duration:'2 hrs',difficulty:'Easy',price:500,rating:4.6,desc:'Taste authentic local cuisine and learn about traditional cooking methods.',image:'harshil.jpg'},
+        {name:'Temple & Heritage Tour',category:'spiritual',duration:'3 hrs',difficulty:'Easy',price:450,rating:4.7,desc:'Visit ancient temples and heritage sites with cultural commentary.',image:'devprayag.jpeg'}
+    ];
+
+    let allActivities      = activitiesData[selectedCity] || defaultActivities;
+    let displayedActivities = [...allActivities];
+    let activeActivity     = null;
+
+    function renderActivities() {
+        const grid = document.getElementById('activitiesGrid');
+        grid.innerHTML = '';
+        if (displayedActivities.length === 0) {
+            grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="icon">🔍</div><p>No activities found for this filter.</p></div>`;
+            return;
+        }
+        displayedActivities.forEach((act, i) => {
+            grid.innerHTML += `
+            <div class="activity-card" style="animation-delay:${i*0.07}s">
+                <div class="card-img-wrap">
+                    <img src="${act.image}" alt="${act.name}" onerror="this.src='dehradun.jpg'">
+                    <span class="card-badge ${act.category}">${act.category}</span>
+                    <span class="rating-badge">⭐ ${act.rating}</span>
+                </div>
+                <div class="card-body">
+                    <h3>${act.name}</h3>
+                    <div class="card-meta"><span>⏱ ${act.duration}</span><span>🎯 ${act.difficulty}</span></div>
+                    <p class="card-desc">${act.desc}</p>
+                    <div class="card-footer">
+                        <div class="price-tag">
+                            <span class="amount">₹${act.price.toLocaleString()}</span>
+                            <span class="per"> /person</span>
+                        </div>
+                        <button class="book-btn" onclick="openModal(${allActivities.indexOf(act)})">Book Now</button>
+                    </div>
+                </div>
+            </div>`;
+        });
+    }
+
+    function filterActivities(cat, btn) {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        displayedActivities = cat === 'all' ? [...allActivities] : allActivities.filter(a => a.category === cat);
+        renderActivities();
+    }
+
+    function sortActivities(val) {
+        if (val === 'low')    displayedActivities.sort((a,b) => a.price - b.price);
+        else if (val === 'high')   displayedActivities.sort((a,b) => b.price - a.price);
+        else if (val === 'rating') displayedActivities.sort((a,b) => b.rating - a.rating);
+        renderActivities();
+    }
+
+    function openModal(index) {
+        activeActivity = allActivities[index];
+        document.getElementById('mImg').src = activeActivity.image;
+        document.getElementById('mName').innerText = activeActivity.name;
+        document.getElementById('mMeta').innerText  = `${activeActivity.duration} · ${activeActivity.difficulty}`;
+        document.getElementById('mPrice').innerText = '₹' + activeActivity.price.toLocaleString();
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('actDate').min = today;
+        document.getElementById('actPeople').value = 1;
+        document.getElementById('actApiErr').style.display = 'none';
+        updateTotal();
+        document.getElementById('bookingView').style.display = 'block';
+        document.getElementById('successView').classList.remove('show');
+        document.getElementById('modalOverlay').classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function updateTotal() {
+        if (!activeActivity) return;
+        const people = parseInt(document.getElementById('actPeople').value) || 1;
+        const total  = activeActivity.price * people;
+        document.getElementById('totalPerPerson').innerText = '₹' + activeActivity.price.toLocaleString();
+        document.getElementById('totalPeople').innerText    = people;
+        document.getElementById('totalAmount').innerText    = '₹' + total.toLocaleString();
+    }
+
+    async function confirmBooking() {
+        const date    = document.getElementById('actDate').value;
+        const people  = document.getElementById('actPeople').value;
+        const name    = document.getElementById('actName').value.trim();
+        const phone   = document.getElementById('actPhone').value.trim();
+        const special = document.getElementById('actSpecial').value.trim();
+        const errEl   = document.getElementById('actApiErr');
+        const btn     = document.getElementById('confirmBtn');
+
+        errEl.style.display = 'none';
+
+        if (!date)  { errEl.innerText = 'Please select a date!';              errEl.style.display='block'; return; }
+        if (!name)  { errEl.innerText = 'Please enter your full name!';       errEl.style.display='block'; return; }
+        if (!phone) { errEl.innerText = 'Please enter your phone number!';    errEl.style.display='block'; return; }
+
+        btn.disabled  = true;
+        btn.innerText = 'Booking…';
+
+        try {
+            const res  = await fetch(`${API}/bookings/activity`, {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify({
+                    user_id:          currentUser.id,
+                    activity_name:    activeActivity.name,
+                    city:             selectedCity,
+                    date,
+                    people:           parseInt(people),
+                    price_per_person: activeActivity.price,
+                    total:            activeActivity.price * parseInt(people),
+                    contact_name:     name,
+                    phone,
+                    special
+                })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                document.getElementById('bookingView').style.display = 'none';
+                document.getElementById('bookingRefNum').innerText   = data.ref || 'ACT-CONFIRMED';
+                document.getElementById('successView').classList.add('show');
+            } else {
+                errEl.innerText     = data.message || 'Booking failed.';
+                errEl.style.display = 'block';
+            }
+        } catch (e) {
+            errEl.innerText     = '❌ Cannot reach server. Is the backend running?';
+            errEl.style.display = 'block';
+        } finally {
+            btn.disabled  = false;
+            btn.innerText = 'Confirm & Book Activity';
+        }
+    }
+
+    function closeModal() {
+        document.getElementById('modalOverlay').classList.remove('open');
+        document.body.style.overflow = '';
+        activeActivity = null;
+    }
+
+    function closeModalOutside(e) {
+        if (e.target === document.getElementById('modalOverlay')) closeModal();
+    }
+
+    function goBack()      { window.location.href = 'city-landing.html'; }
+    function goDashboard() { window.location.href = 'userDashboard.html'; }
+    function logout()      { sessionStorage.clear(); window.location.href = 'login.html'; }
+
+    renderActivities();
+</script>
+</body>
+</html>

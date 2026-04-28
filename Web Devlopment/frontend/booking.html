@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Book Property - Safar</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+*{ margin:0; padding:0; box-sizing:border-box; font-family:Arial,sans-serif; }
+body{ background:#f4f4f4; }
+nav{ background:#111; color:white; padding:15px 50px; display:flex; justify-content:space-between; }
+nav h2{ color:orange; }
+nav button{ padding:8px 15px; background:orange; border:none; color:white; cursor:pointer; border-radius:5px; }
+.container{ padding:40px 60px; display:flex; gap:40px; flex-wrap:wrap; }
+.property-preview{ flex:1; min-width:300px; background:white; padding:20px; border-radius:10px; box-shadow:0 5px 15px rgba(0,0,0,0.1); }
+.property-preview img{ width:100%; height:220px; object-fit:cover; border-radius:10px; }
+.price{ color:green; font-weight:bold; margin:10px 0; }
+.booking-form{ flex:1; min-width:300px; background:white; padding:20px; border-radius:10px; box-shadow:0 5px 15px rgba(0,0,0,0.1); }
+label{ display:block; margin-top:12px; font-size:14px; color:#555; }
+input{ width:100%; padding:10px; margin-top:6px; border:1px solid #ccc; border-radius:5px; font-size:14px; }
+input:focus{ outline:none; border-color:orange; }
+hr{ margin:15px 0; border-color:#eee; }
+button.primary{ padding:12px 20px; background:orange; border:none; color:white; cursor:pointer; border-radius:5px; margin-top:14px; font-size:15px; font-weight:bold; width:100%; }
+button.primary:hover{ background:darkorange; }
+button.primary:disabled{ background:#aaa; cursor:not-allowed; }
+.success{ color:green; margin-top:12px; font-weight:bold; font-size:15px; }
+.error{ color:red; margin-top:10px; font-size:14px; }
+.spinner{ display:inline-block; width:14px; height:14px; border:2px solid rgba(255,255,255,0.4); border-top-color:white; border-radius:50%; animation:spin 0.6s linear infinite; margin-right:6px; vertical-align:middle; }
+@keyframes spin{ to{ transform:rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<nav>
+    <h2>Safar Booking</h2>
+    <button onclick="goBack()">← Back</button>
+</nav>
+
+<div class="container">
+
+    <div class="property-preview">
+        <img id="propertyImage" src="" alt="Property">
+        <h3 id="propertyName"></h3>
+        <p class="price">₹<span id="propertyPrice"></span> per night</p>
+    </div>
+
+    <div class="booking-form">
+        <h3>Book Your Stay</h3>
+
+        <label>Check-in Date</label>
+        <input type="date" id="checkin">
+
+        <label>Check-out Date</label>
+        <input type="date" id="checkout">
+
+        <label>Guests</label>
+        <input type="number" id="guests" min="1" value="1">
+
+        <hr>
+        <h3>Bargain With Owner 💬</h3>
+        <label>Offer Your Price (₹ per night)</label>
+        <input type="number" id="offerPrice" placeholder="Enter your offer (optional)">
+
+        <div class="error"   id="errMsg"></div>
+        <div class="success" id="successMsg"></div>
+
+        <button class="primary" id="bookBtn" onclick="submitBooking()">Confirm Booking</button>
+    </div>
+
+</div>
+
+<script>
+    const API = 'http://localhost:3000/api';
+
+    // ── Auth guard ────────────────────────────────────────────
+    const currentUser = JSON.parse(sessionStorage.getItem('loggedInUser'));
+    if (!currentUser) { window.location.href = 'login.html'; }
+
+    // ── Load property from sessionStorage ────────────────────
+    const property = JSON.parse(sessionStorage.getItem('selectedProperty'));
+    if (!property) { window.location.href = 'properties.html'; }
+
+    document.getElementById('propertyImage').src = property.image;
+    document.getElementById('propertyName').innerText = property.name;
+    document.getElementById('propertyPrice').innerText = property.price.toLocaleString();
+
+    // Set min date to today
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('checkin').min  = today;
+    document.getElementById('checkout').min = today;
+
+    // ── Submit booking via API ────────────────────────────────
+    async function submitBooking() {
+        const checkin    = document.getElementById('checkin').value;
+        const checkout   = document.getElementById('checkout').value;
+        const guests     = document.getElementById('guests').value;
+        const offerPrice = document.getElementById('offerPrice').value;
+        const errEl      = document.getElementById('errMsg');
+        const okEl       = document.getElementById('successMsg');
+        const btn        = document.getElementById('bookBtn');
+
+        errEl.innerText = '';
+        okEl.innerText  = '';
+
+        if (!checkin || !checkout) {
+            errEl.innerText = 'Please select check-in and check-out dates.';
+            return;
+        }
+
+        if (new Date(checkout) <= new Date(checkin)) {
+            errEl.innerText = 'Check-out must be after check-in.';
+            return;
+        }
+
+        btn.disabled  = true;
+        btn.innerHTML = '<span class="spinner"></span>Sending request…';
+
+        try {
+            const res  = await fetch(`${API}/bookings/hotel`, {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify({
+                    user_id:        currentUser.id,
+                    property_name:  property.name,
+                    original_price: property.price,
+                    offered_price:  offerPrice || property.price,
+                    owner_email:    property.owner,
+                    checkin,
+                    checkout,
+                    guests,
+                    city: sessionStorage.getItem('selectedCity') || ''
+                })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                okEl.innerText = '✅ Booking request sent to owner! Check your Dashboard for updates.';
+                btn.disabled   = false;
+                btn.innerHTML  = 'Confirm Booking';
+            } else {
+                errEl.innerText = data.message || 'Could not send request.';
+                btn.disabled    = false;
+                btn.innerHTML   = 'Confirm Booking';
+            }
+        } catch (e) {
+            errEl.innerText = '❌ Cannot reach server. Is the backend running?';
+            btn.disabled    = false;
+            btn.innerHTML   = 'Confirm Booking';
+        }
+    }
+
+    function goBack() { window.location.href = 'properties.html'; }
+</script>
+</body>
+</html>
