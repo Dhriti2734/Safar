@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Explore Cities - Safar</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+*{ margin:0; padding:0; box-sizing:border-box; font-family:Arial,sans-serif; }
+body{ background:#f4f4f4; }
+nav{ background:#111; color:white; padding:15px 50px; display:flex; justify-content:space-between; align-items:center; }
+nav h2{ color:orange; }
+nav button{ padding:8px 15px; background:orange; border:none; cursor:pointer; color:white; border-radius:5px; margin-left:8px; }
+.container{ padding:40px 60px; }
+.filters{ display:flex; gap:20px; margin-bottom:30px; flex-wrap:wrap; align-items:center; }
+select{ padding:10px; border-radius:5px; border:1px solid #ccc; }
+.city-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:25px; }
+.card{ background:white; border-radius:10px; overflow:hidden; box-shadow:0 5px 15px rgba(0,0,0,0.1); transition:0.3s; cursor:pointer; }
+.card:hover{ transform:scale(1.04); }
+.card img{ width:100%; height:180px; object-fit:cover; }
+.card-content{ padding:15px; }
+.card-content h3{ margin-bottom:8px; }
+.price{ color:green; font-weight:bold; }
+.loading{ text-align:center; padding:40px; color:#888; font-size:16px; }
+</style>
+</head>
+<body>
+
+<nav>
+    <h2>Safar Explore</h2>
+    <div>
+        <button onclick="goDashboard()">Dashboard</button>
+        <button onclick="logout()">Logout</button>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="filters">
+        <select id="stateFilter" onchange="filterCities()">
+            <option value="all">All States</option>
+            <option value="Uttarakhand">Uttarakhand</option>
+            <option value="Himachal">Himachal</option>
+        </select>
+        <select id="priceSort" onchange="sortCities()">
+            <option value="default">Sort by Price</option>
+            <option value="low">Low to High</option>
+            <option value="high">High to Low</option>
+        </select>
+    </div>
+    <div class="city-grid" id="cityGrid">
+        <div class="loading">Loading cities…</div>
+    </div>
+</div>
+
+<script>
+    // ── Auth guard ────────────────────────────────────────────
+    const currentUser = JSON.parse(sessionStorage.getItem('loggedInUser'));
+    if (!currentUser || currentUser.role !== 'user') {
+        window.location.href = 'login.html';
+    }
+
+    // ── Static city data (no backend needed — cities are fixed) ──
+    const cities = [
+        { name:'Chopta',    state:'Uttarakhand', price:6999, image:'chopta.webp'    },
+        { name:'Dehradun',  state:'Uttarakhand', price:4999, image:'dehradun.jpg'   },
+        { name:'Devprayag', state:'Uttarakhand', price:5999, image:'devprayag.jpeg' },
+        { name:'Dhanaulti', state:'Uttarakhand', price:5499, image:'dhanualti.webp' },
+        { name:'Dharchula', state:'Uttarakhand', price:7999, image:'dharchula.jpg'  },
+        { name:'Rishikesh', state:'Uttarakhand', price:4500, image:'rishikesh.jpg'  },
+        { name:'Harshil',   state:'Himachal',    price:8999, image:'harshil.jpg'    },
+        { name:'Kalpa',     state:'Himachal',    price:8500, image:'kalpa.jpg'      },
+        { name:'Mussoorie', state:'Uttarakhand', price:6500, image:'mussorie.jpg'   },
+        { name:'Sangla',    state:'Himachal',    price:9200, image:'sangla.webp'    }
+    ];
+
+    let displayedCities = [...cities];
+
+    function displayCities() {
+        const grid = document.getElementById('cityGrid');
+        grid.innerHTML = '';
+        displayedCities.forEach(city => {
+            grid.innerHTML += `
+                <div class="card" onclick="openCity('${city.name}')">
+                    <img src="${city.image}" alt="${city.name}" onerror="this.src='home.webp'">
+                    <div class="card-content">
+                        <h3>${city.name}</h3>
+                        <p>State: ${city.state}</p>
+                        <p class="price">Starting ₹${city.price.toLocaleString()}</p>
+                    </div>
+                </div>`;
+        });
+    }
+
+    function filterCities() {
+        const state = document.getElementById('stateFilter').value;
+        displayedCities = state === 'all' ? [...cities] : cities.filter(c => c.state === state);
+        const sort = document.getElementById('priceSort').value;
+        if (sort === 'low')  displayedCities.sort((a,b) => a.price - b.price);
+        if (sort === 'high') displayedCities.sort((a,b) => b.price - a.price);
+        displayCities();
+    }
+
+    function sortCities() {
+        const val = document.getElementById('priceSort').value;
+        if (val === 'low')  displayedCities.sort((a,b) => a.price - b.price);
+        if (val === 'high') displayedCities.sort((a,b) => b.price - a.price);
+        displayCities();
+    }
+
+    function openCity(cityName) {
+        sessionStorage.setItem('selectedCity', cityName);
+        window.location.href = 'city-landing.html';
+    }
+
+    function goDashboard() { window.location.href = 'userDashboard.html'; }
+
+    function logout() {
+        sessionStorage.clear();
+        window.location.href = 'login.html';
+    }
+
+    displayCities();
+</script>
+</body>
+</html>
