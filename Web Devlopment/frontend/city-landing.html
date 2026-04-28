@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Explore - Safar</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--orange:#F97316;--dark-orange:#C2410C;--black:#0D0D0D;--white:#FAFAFA;--gray:#6B7280;}
+body{font-family:'DM Sans',sans-serif;background:var(--black);color:var(--white);min-height:100vh;overflow-x:hidden;}
+nav{display:flex;justify-content:space-between;align-items:center;padding:18px 60px;background:rgba(0,0,0,0.9);border-bottom:1px solid rgba(255,255,255,0.07);position:sticky;top:0;z-index:100;}
+nav h2{font-family:'Playfair Display',serif;color:var(--orange);font-size:24px;letter-spacing:1px;}
+.nav-btns{display:flex;gap:12px;}
+.nav-btn{padding:8px 18px;background:transparent;border:1px solid rgba(255,255,255,0.2);color:var(--white);cursor:pointer;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:14px;transition:all 0.2s;}
+.nav-btn:hover{background:var(--orange);border-color:var(--orange);}
+.hero-banner{position:relative;height:380px;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+.hero-banner img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:brightness(0.35);}
+.hero-content{position:relative;text-align:center;z-index:1;animation:fadeUp 0.6s ease both;}
+.hero-content .tag{display:inline-block;background:var(--orange);color:white;font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;padding:6px 16px;border-radius:50px;margin-bottom:18px;}
+.hero-content h1{font-family:'Playfair Display',serif;font-size:58px;font-weight:900;line-height:1.1;margin-bottom:12px;}
+.hero-content p{font-size:16px;color:rgba(255,255,255,0.65);letter-spacing:0.5px;}
+.info-strip{display:flex;justify-content:center;gap:50px;padding:30px 60px;border-top:1px solid rgba(255,255,255,0.06);border-bottom:1px solid rgba(255,255,255,0.06);flex-wrap:wrap;}
+.info-item{text-align:center;}
+.info-item .num{font-family:'Playfair Display',serif;font-size:28px;color:var(--orange);font-weight:700;}
+.info-item .label{font-size:13px;color:var(--gray);margin-top:4px;}
+.choice-section{padding:70px 60px;text-align:center;}
+.choice-section h2{font-family:'Playfair Display',serif;font-size:32px;margin-bottom:8px;}
+.choice-section p{color:var(--gray);font-size:15px;margin-bottom:50px;}
+.choice-cards{display:flex;gap:30px;justify-content:center;flex-wrap:wrap;}
+.choice-card{width:340px;border-radius:20px;overflow:hidden;background:#161616;border:1px solid rgba(255,255,255,0.08);cursor:pointer;transition:all 0.35s cubic-bezier(0.22,0.61,0.36,1);animation:fadeUp 0.5s ease both;text-align:left;}
+.choice-card:nth-child(2){animation-delay:0.12s;}
+.choice-card:hover{transform:translateY(-10px);border-color:var(--orange);box-shadow:0 20px 60px rgba(249,115,22,0.2);}
+.choice-card-img{width:100%;height:200px;object-fit:cover;display:block;transition:transform 0.4s ease;}
+.choice-card:hover .choice-card-img{transform:scale(1.05);}
+.choice-card-body{padding:24px;}
+.choice-icon{width:48px;height:48px;border-radius:12px;background:rgba(249,115,22,0.15);display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:16px;border:1px solid rgba(249,115,22,0.3);}
+.choice-card-body h3{font-family:'Playfair Display',serif;font-size:22px;margin-bottom:10px;}
+.choice-card-body p{color:var(--gray);font-size:14px;line-height:1.7;margin-bottom:20px;}
+.choice-pills{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:22px;}
+.pill{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.7);font-size:12px;padding:4px 12px;border-radius:50px;border:1px solid rgba(255,255,255,0.1);}
+.choice-btn{width:100%;padding:13px;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;transition:all 0.2s;}
+.btn-hotel{background:var(--orange);color:white;}
+.btn-hotel:hover{background:var(--dark-orange);}
+.btn-activities{background:transparent;color:var(--orange);border:2px solid var(--orange);}
+.btn-activities:hover{background:var(--orange);color:white;}
+footer{background:#080808;padding:20px 60px;text-align:center;color:var(--gray);font-size:13px;margin-top:60px;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px);}to{opacity:1;transform:translateY(0);}}
+@media(max-width:768px){nav{padding:14px 20px;}.hero-content h1{font-size:38px;}.choice-section{padding:50px 20px;}.info-strip{gap:25px;padding:25px 20px;}}
+</style>
+</head>
+<body>
+
+<nav>
+    <h2>Safar</h2>
+    <div class="nav-btns">
+        <button class="nav-btn" onclick="goBack()">← Back</button>
+        <button class="nav-btn" onclick="goDashboard()">Dashboard</button>
+        <button class="nav-btn" onclick="logout()">Logout</button>
+    </div>
+</nav>
+
+<div class="hero-banner">
+    <img id="cityBannerImg" src="" alt="">
+    <div class="hero-content">
+        <div class="tag">Destination</div>
+        <h1 id="cityHeroName">City</h1>
+        <p>What would you like to explore today?</p>
+    </div>
+</div>
+
+<div class="info-strip">
+    <div class="info-item"><div class="num">3+</div><div class="label">Hotels Available</div></div>
+    <div class="info-item"><div class="num">8+</div><div class="label">Activities</div></div>
+    <div class="info-item"><div class="num">⭐ 4.7</div><div class="label">Avg Rating</div></div>
+    <div class="info-item"><div class="num">24/7</div><div class="label">Support</div></div>
+</div>
+
+<section class="choice-section">
+    <h2>Choose Your Experience</h2>
+    <p>Select how you'd like to explore <span id="citySubName">this destination</span></p>
+    <div class="choice-cards">
+        <div class="choice-card" onclick="goHotels()">
+            <img class="choice-card-img" src="p4.jpg" alt="Hotel">
+            <div class="choice-card-body">
+                <div class="choice-icon">🏨</div>
+                <h3>Hotel Booking</h3>
+                <p>Browse verified hotels, resorts & stays. Bargain directly with property owners for the best deals.</p>
+                <div class="choice-pills">
+                    <span class="pill">Verified Properties</span>
+                    <span class="pill">Price Bargain</span>
+                    <span class="pill">Instant Confirm</span>
+                </div>
+                <button class="choice-btn btn-hotel">Browse Hotels →</button>
+            </div>
+        </div>
+        <div class="choice-card" onclick="goActivities()">
+            <img class="choice-card-img" id="activityImg" src="rishikesh.jpg" alt="Activities">
+            <div class="choice-card-body">
+                <div class="choice-icon">🎯</div>
+                <h3>Tourist Activities</h3>
+                <p>Book thrilling adventures, guided tours, treks & local experiences curated just for your destination.</p>
+                <div class="choice-pills">
+                    <span class="pill">Guided Tours</span>
+                    <span class="pill">Adventure Sports</span>
+                    <span class="pill">Local Experiences</span>
+                </div>
+                <button class="choice-btn btn-activities">Explore Activities →</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer><p>© 2026 Safar Travel Booking | All Rights Reserved</p></footer>
+
+<script>
+    const currentUser = JSON.parse(sessionStorage.getItem('loggedInUser'));
+    if (!currentUser || currentUser.role !== 'user') { window.location.href = 'login.html'; }
+
+    const selectedCity = sessionStorage.getItem('selectedCity') || 'City';
+    const cityImages = {
+        'Chopta':'chopta.webp','Dehradun':'dehradun.jpg','Devprayag':'devprayag.jpeg',
+        'Dhanaulti':'dhanualti.webp','Dharchula':'dharchula.jpg','Rishikesh':'rishikesh.jpg',
+        'Harshil':'harshil.jpg','Kalpa':'kalpa.jpg','Mussoorie':'mussorie.jpg','Sangla':'sangla.webp'
+    };
+    const img = cityImages[selectedCity] || 'home.webp';
+    document.getElementById('cityBannerImg').src = img;
+    document.getElementById('activityImg').src   = img;
+    document.getElementById('cityHeroName').innerText = selectedCity;
+    document.getElementById('citySubName').innerText  = selectedCity;
+
+    function goHotels()     { window.location.href = 'properties.html'; }
+    function goActivities() { window.location.href = 'activities.html'; }
+    function goBack()       { window.location.href = 'explore.html'; }
+    function goDashboard()  { window.location.href = 'userDashboard.html'; }
+    function logout()       { sessionStorage.clear(); window.location.href = 'login.html'; }
+</script>
+</body>
+</html>
